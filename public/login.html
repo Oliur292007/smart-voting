@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ভোটার লগইন</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>ভোটার লগইন</h1>
+    <form id="loginForm">
+      <label>এন আই ডি নম্বর:</label>
+      <input type="text" id="nid" required>
+
+      <label>উপজেলা:</label>
+      <input type="text" id="upazila" required>
+
+      <label>জেলা:</label>
+      <input type="text" id="district" required>
+
+      <label>বিভাগ:</label>
+      <input type="text" id="division" required>
+
+      <button type="submit">লগইন</button>
+      <div id="loginMsg"></div>
+    </form>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>

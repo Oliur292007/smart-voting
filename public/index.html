@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ভোটিং সিস্টেম</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="device">
+    <header>
+      <div class="title">স্মার্ট ভোটিং সিস্টেম</div>
+    </header>
 
+    <main>
+      <h2>দয়া করে আপনার প্রার্থী নির্বাচন করুন:</h2>
+      <div class="nominee-list" id="nomineeList">
+        <div class="nominee" data-bn="মোঃ সাহজাহান ওমর">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/0/02/Bangladesh_Nationalist_Party_Election_Symbol.svg" alt="মোঃ সাহজাহান ওমর">
+          <h3>মোঃ সাহজাহান ওমর</h3>
+        </div>
+        <div class="nominee" data-bn="প্রার্থী খ">
+          <img src="https://i.pravatar.cc/70?img=2" alt="প্রার্থী খ">
+          <h3>প্রার্থী খ</h3>
+        </div>
+        <div class="nominee" data-bn="প্রার্থী গ">
+          <img src="https://i.pravatar.cc/70?img=3" alt="প্রার্থী গ">
+          <h3>প্রার্থী গ</h3>
+        </div>
+      </div>
+
+      <button id="submitBtn" class="submit">জমা দিন</button>
+    </main>
+
+    <div class="overlay" id="confirmOverlay">
+      <h2 id="confirmText"></h2>
+      <div class="buttons">
+        <button id="confirmYes">হ্যাঁ</button>
+        <button id="confirmNo">না</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText"></h2>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>
