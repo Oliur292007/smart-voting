@@ -9,22 +9,27 @@ loginForm.addEventListener('submit', async (e) => {
   const district = document.getElementById('district').value.trim();
   const division = document.getElementById('division').value.trim();
 
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nid, upazila, district, division })
-  });
+  console.log('Sending login request:', { nid, upazila, district, division });
 
-  const data = await res.json();
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nid, upazila, district, division })
+    });
 
-  if(data.success) {
-    // লগইন সফল
-    sessionStorage.setItem('nid', nid);
-    window.location.href = '/index.html';
-  } else {
-    // লগইন ব্যর্থ
-    loginMsg.textContent = data.message;
+    console.log('Response status:', res.status);
+    const data = await res.json();
+    console.log('Response data:', data);
+
+    if(data.success) {
+      sessionStorage.setItem('nid', nid);
+      window.location.href = '/index.html';
+    } else {
+      loginMsg.textContent = data.message;
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    loginMsg.textContent = 'নেটওয়ার্ক ত্রুটি! আবার চেষ্টা করুন।';
   }
 });
-
-
