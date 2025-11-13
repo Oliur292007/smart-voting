@@ -1,19 +1,44 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
-  if(req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { nid, nominee } = req.body;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-  const { data, error } = await supabase
-    .from('votes')
-    .insert([{ nid, nominee, timestamp: new Date() }]);
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, message: 'Method not allowed' });
+  }
 
-  if(error) return res.json({ success: false, message: 'ভোট দিতে ব্যর্থ হয়েছে।' });
+  try {
+    const { nid, nominee } = req.body;
 
-  return res.json({ success: true, message: 'ভোট সফলভাবে দেওয়া হয়েছে।' });
+    // Check if environment variables are set
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+      console.error('Missing environment variables');
+      return res.status(500).json({ success: false, message: 'সার্ভার কনফিগারেশন ত্রুটি' });
+    }
+
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+    const { data, error } = await supabase
+      .from('votes')
+      .insert([{ nid, nominee, timestamp: new Date() }]);
+
+    if (error) {
+      console.error('Vote insert error:', error);
+      return res.status(500).json({ success: false, message: 'ভোট দিতে ব্যর্থ হয়েছে।' });
+    }
+
+    return res.status(200).json({ success: true, message: 'ভোট সফলভাবে দেওয়া হয়েছে।' });
+
+  } catch (error) {
+    console.error('Vote API error:', error);
+    return res.status(500).json({ success: false, message: 'সার্ভার ত্রুটি হয়েছে' });
+  }
 }
