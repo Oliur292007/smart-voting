@@ -16,7 +16,7 @@ loginForm.addEventListener('submit', async (e) => {
   loginMsg.style.color = 'blue';
 
   try {
-    const res = await fetch('/api/login', {
+    const res = await fetch('/api/login', {   // ✅ No .js here
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nid, upazila, district, division })
@@ -35,7 +35,7 @@ loginForm.addEventListener('submit', async (e) => {
       throw new Error(`সার্ভার ত্রুটি: ${text}`);
     }
 
-    if(data.success) {
+    if (data.success) {
       sessionStorage.setItem('nid', nid);
       window.location.href = '/index.html';
     } else {
