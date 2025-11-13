@@ -5,4 +5,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0"
   }
+  "scripts": {
+    "build": "[smart-voting] build --output public"
+  }
 }
