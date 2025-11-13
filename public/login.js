@@ -19,6 +19,15 @@ loginForm.addEventListener('submit', async (e) => {
     });
 
     console.log('Response status:', res.status);
+    
+    // Check if response is JSON
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error('সার্ভার থেকে ভুল রেসপন্স');
+    }
+
     const data = await res.json();
     console.log('Response data:', data);
 
