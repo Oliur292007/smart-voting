@@ -26,24 +26,32 @@ export default async function handler(req, res) {
 
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-    // Validate voter
+    // Validate voter - matches your voters table schema
     const { data: voter, error: voterError } = await supabase
       .from('voters')
-      .select('*')
+      .select('nid, upazila, district, division')
       .eq('nid', nid)
       .eq('upazila', upazila)
       .eq('district', district)
       .eq('division', division)
       .single();
 
-    if (voterError || !voter) {
+    if (voterError) {
+      console.error('Voter lookup error:', voterError);
+      if (voterError.code === 'PGRST116') {
+        return res.status(401).json({ success: false, message: 'ভুল তথ্য! ভোট দেওয়া যাবে না।' });
+      }
+      return res.status(500).json({ success: false, message: 'ডেটাবেস ত্রুটি' });
+    }
+
+    if (!voter) {
       return res.status(401).json({ success: false, message: 'ভুল তথ্য! ভোট দেওয়া যাবে না।' });
     }
 
-    // Check if already voted
+    // Check if already voted - matches your votes table schema
     const { data: voteData, error: voteError } = await supabase
       .from('votes')
-      .select('*')
+      .select('id')
       .eq('nid', nid);
 
     if (voteError) {
