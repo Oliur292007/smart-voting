@@ -26,12 +26,23 @@ export default async function handler(req, res) {
 
     const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
+    // Insert vote - matches your votes table schema exactly
     const { data, error } = await supabase
       .from('votes')
-      .insert([{ nid, nominee, timestamp: new Date() }]);
+      .insert([{ 
+        nid: nid, 
+        nominee: nominee, 
+        timestamp: new Date().toISOString() 
+      }]);
 
     if (error) {
       console.error('Vote insert error:', error);
+      
+      // Handle foreign key violation (voter not found in voters table)
+      if (error.code === '23503') {
+        return res.status(400).json({ success: false, message: 'ভোটার রেকর্ড পাওয়া যায়নি' });
+      }
+      
       return res.status(500).json({ success: false, message: 'ভোট দিতে ব্যর্থ হয়েছে।' });
     }
 
