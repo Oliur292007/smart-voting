@@ -1,72 +1,55 @@
-import { createClient } from '@supabase/supabase-js';
+const loginForm = document.getElementById('loginForm');
+const loginMsg = document.getElementById('loginMsg');
 
-export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  const nid = document.getElementById('nid').value.trim();
+  const upazila = document.getElementById('upazila').value.trim();
+  const district = document.getElementById('district').value.trim();
+  const division = document.getElementById('division').value.trim();
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
-  }
+  console.log('Login attempt with:', { nid, upazila, district, division });
 
   try {
-    const { nid, upazila, district, division } = req.body;
+    loginMsg.textContent = 'চেক করা হচ্ছে...';
+    
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ nid, upazila, district, division })
+    });
 
-    // Check if environment variables are set
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
-      console.error('Missing environment variables');
-      return res.status(500).json({ success: false, message: 'সার্ভার কনফিগারেশন ত্রুটি' });
+    console.log('Response status:', res.status);
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
 
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
-    // Validate voter - matches your voters table schema
-    const { data: voter, error: voterError } = await supabase
-      .from('voters')
-      .select('nid, upazila, district, division')
-      .eq('nid', nid)
-      .eq('upazila', upazila)
-      .eq('district', district)
-      .eq('division', division)
-      .single();
-
-    if (voterError) {
-      console.error('Voter lookup error:', voterError);
-      if (voterError.code === 'PGRST116') {
-        return res.status(401).json({ success: false, message: 'ভুল তথ্য! ভোট দেওয়া যাবে না।' });
-      }
-      return res.status(500).json({ success: false, message: 'ডেটাবেস ত্রুটি' });
+    const text = await res.text();
+    console.log('Raw response:', text);
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid response from server');
     }
 
-    if (!voter) {
-      return res.status(401).json({ success: false, message: 'ভুল তথ্য! ভোট দেওয়া যাবে না।' });
+    console.log('Parsed data:', data);
+
+    if(data.success) {
+      sessionStorage.setItem('nid', nid);
+      window.location.href = '/index.html';
+    } else {
+      loginMsg.textContent = data.message;
     }
-
-    // Check if already voted - matches your votes table schema
-    const { data: voteData, error: voteError } = await supabase
-      .from('votes')
-      .select('id')
-      .eq('nid', nid);
-
-    if (voteError) {
-      console.error('Vote check error:', voteError);
-      return res.status(500).json({ success: false, message: 'ডেটাবেস ত্রুটি' });
-    }
-
-    if (voteData && voteData.length > 0) {
-      return res.status(400).json({ success: false, message: 'আপনি ইতিমধ্যেই ভোট দিয়েছেন!' });
-    }
-
-    return res.status(200).json({ success: true, message: 'ভোট দিতে পারবেন।' });
-
   } catch (error) {
-    console.error('Login API error:', error);
-    return res.status(500).json({ success: false, message: 'সার্ভার ত্রুটি হয়েছে' });
+    console.error('Full login error:', error);
+    loginMsg.textContent = `নেটওয়ার্ক ত্রুটি: ${error.message}`;
   }
-      }
+});
