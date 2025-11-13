@@ -11,6 +11,10 @@ loginForm.addEventListener('submit', async (e) => {
 
   console.log('Sending login request:', { nid, upazila, district, division });
 
+  // Show loading
+  loginMsg.textContent = 'চেক করা হচ্ছে...';
+  loginMsg.style.color = 'blue';
+
   try {
     const res = await fetch('/api/login', {
       method: 'POST',
@@ -20,25 +24,27 @@ loginForm.addEventListener('submit', async (e) => {
 
     console.log('Response status:', res.status);
     
-    // Check if response is JSON
-    const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await res.text();
-      console.error('Non-JSON response:', text);
-      throw new Error('সার্ভার থেকে ভুল রেসপন্স');
-    }
+    const text = await res.text();
+    console.log('Raw response:', text);
 
-    const data = await res.json();
-    console.log('Response data:', data);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error(`সার্ভার ত্রুটি: ${text}`);
+    }
 
     if(data.success) {
       sessionStorage.setItem('nid', nid);
       window.location.href = '/index.html';
     } else {
       loginMsg.textContent = data.message;
+      loginMsg.style.color = 'red';
     }
   } catch (error) {
     console.error('Login error:', error);
-    loginMsg.textContent = 'নেটওয়ার্ক ত্রুটি! আবার চেষ্টা করুন।';
+    loginMsg.textContent = error.message || 'নেটওয়ার্ক ত্রুটি! আবার চেষ্টা করুন।';
+    loginMsg.style.color = 'red';
   }
 });
