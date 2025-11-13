@@ -1,0 +1,58 @@
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+module.exports = async (req, res) => {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, message: 'Method not allowed' });
+  }
+
+  try {
+    const { nid, candidateId } = req.body;
+
+    if (!nid || !candidateId) {
+      return res.status(400).json({ success: false, message: 'সব তথ্য প্রদান করুন' });
+    }
+
+    // --- Check if user already voted ---
+    const { data: voteData, error: voteError } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('nid', nid);
+
+    if (voteError) {
+      console.error('Vote check error:', voteError);
+      return res.status(500).json({ success: false, message: 'ডাটাবেস ত্রুটি!' });
+    }
+
+    if (voteData && voteData.length > 0) {
+      return res.json({ success: false, message: 'আপনি ইতিমধ্যেই ভোট দিয়েছেন!' });
+    }
+
+    // --- Insert the vote ---
+    const { data: insertedVote, error: insertError } = await supabase
+      .from('votes')
+      .insert([{ nid, candidate_id: candidateId }]);
+
+    if (insertError) {
+      console.error('Vote insert error:', insertError);
+      return res.status(500).json({ success: false, message: 'ভোট রেকর্ড করা যায়নি!' });
+    }
+
+    return res.json({ success: true, message: 'ভোট সফলভাবে রেকর্ড হয়েছে!' });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    return res.status(500).json({ success: false, message: 'সার্ভার ত্রুটি!' });
+  }
+};
